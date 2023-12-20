@@ -4,6 +4,7 @@
     "keywords": [
         "pulse",
         "laravel",
+        "laravel-pulse",
         "pulse-active-sessions"
     ],
     "homepage": "https://github.com/vcian/pulse-active-sessions",
