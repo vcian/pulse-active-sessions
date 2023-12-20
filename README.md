@@ -60,6 +60,7 @@ Then, you can modify the `dashboard.blade.php` file:
 
 </x-pulse>
 ```
+<p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/pulse-active-sessions/card-ss.png" width="100%" alt="Active Sessions Card"></p>
 
 That's it!
 
