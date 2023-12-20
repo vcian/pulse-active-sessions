@@ -1,5 +1,6 @@
-![Packagist License (custom server)](https://img.shields.io/packagist/l/vcian/https%3A%2F%2Fgithub.com%2Fvcian%2Fpulse-active-sessions.git)
-![Packagist Downloads (custom server)](https://img.shields.io/packagist/dt/vcian/https%3A%2F%2Fgithub.com%2Fvcian%2Fpulse-active-sessions.git)
+![Packagist License (custom server)](https://img.shields.io/packagist/l/vcian/pulse-active-sessions)
+![Packagist Downloads (custom server)](https://img.shields.io/packagist/dt/vcian/pulse-active-sessions)
+
 
 # Active Sessions card for Laravel Pulse
 
