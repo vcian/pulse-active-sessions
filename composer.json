@@ -1,6 +1,6 @@
 {
     "name": "vcian/pulse-active-sessions",
-    "description": "A Laravel Pulse card to show user login dependencies",
+    "description": "A Laravel Pulse card to show active user sessions",
     "keywords": [
         "pulse",
         "laravel",
