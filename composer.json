@@ -1,0 +1,59 @@
+{
+    "name": "vcian/pulse-active-sessions",
+    "description": "A Laravel Pulse card to show user login dependencies",
+    "keywords": [
+        "pulse",
+        "laravel",
+        "pulse-active-sessions"
+    ],
+    "homepage": "https://github.com/vcian/pulse-active-sessions",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Vcian - ViitorCloud",
+            "homepage": "https://github.com/vcian"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "*",
+        "laravel/pulse": "^1.0.0@beta"
+    },
+    "require-dev": {
+        "pestphp/pest": "^2.20",
+        "pestphp/pest-plugin-arch": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vcian\\Pulse\\PulseActiveSessions\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vcian\\Pulse\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Vcian\\Pulse\\PulseActiveSessions\\PulseActiveSessionsServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
