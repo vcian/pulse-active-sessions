@@ -1,5 +1,5 @@
 <x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
-    <x-pulse::card-header name="Pulse Active Sessions">
+    <x-pulse::card-header name="Active Sessions">
         <x-slot:icon>
                 <x-pulse_active_session::icons.session />
         </x-slot:icon>
@@ -17,7 +17,7 @@
                     </colgroup>
                     <x-pulse::thead>
                         <tr>
-                            <x-pulse::th>Guard</x-pulse::th>
+                            <x-pulse::th>Platform</x-pulse::th>
                             <x-pulse::th class="text-right">Count</x-pulse::th>
                         </tr>
                     </x-pulse::thead>
