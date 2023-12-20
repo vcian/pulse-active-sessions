@@ -59,5 +59,31 @@ Then, you can modify the `dashboard.blade.php` file:
 
 That's it!
 
+## Changelog
+
+Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
+
+## Contributing
+
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+       We believe in 
+            👇
+          ACT NOW
+      PERFECT IT LATER
+    CORRECT IT ON THE WAY.
+
+## Security
+
+If you discover any security-related issues, please email ruchit.patel@viitor.cloud instead of using the issue tracker.
+
+## Credits
+
+- [All Contributors](../../contributors)
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
 
 
