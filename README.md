@@ -14,6 +14,16 @@ Require the package with Composer:
 composer require vcian/pulse-active-sessions
 ```
 
+Next, you should publish the Pulse configuration and migration files using the vendor:publish Artisan command:
+
+```
+php artisan vendor:publish --provider="Laravel\Pulse\PulseServiceProvider"
+```
+
+```
+php artisan migrate
+```
+
 ## Register the recorder
 
 Right now, the Composer dependencies will only be checked once per day. To run the checks you must add the `PulseActiveSessionRecorder` to the `pulse.php` file.
@@ -61,6 +71,11 @@ Then, you can modify the `dashboard.blade.php` file:
 </x-pulse>
 ```
 <p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/pulse-active-sessions/card-ss.png" width="100%" alt="Active Sessions Card"></p>
+
+To make pulse recorders will automatically capture entries based on framework events dispatched by Laravel, You must run the below command.
+```
+php artisan pulse:check
+```
 
 That's it!
 

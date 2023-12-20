@@ -1,7 +1,4 @@
 <?php
-/**
- * @author Aaron Francis <aarondfrancis@gmail.com|https://twitter.com/aarondfrancis>
- */
 
 namespace Vcian\Pulse\PulseActiveSessions\Recorders;
 
@@ -10,14 +7,12 @@ use Exception;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Session;
 use Laravel\Passport\Token;
 use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
 use Laravel\Sanctum\PersonalAccessToken;
 use ReflectionClass;
-use RuntimeException;
 
 class PulseActiveSessionRecorder
 {
@@ -102,7 +97,7 @@ class PulseActiveSessionRecorder
                 }
     
             }
-            Log::info($apiDriver);
+
             if($apiDriver == 'sanctum') {
                 $activeSessions['api'] = PersonalAccessToken::where(function ($query) {
                     $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
