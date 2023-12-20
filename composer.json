@@ -18,11 +18,11 @@
     "require": {
         "php": "^8.1",
         "illuminate/support": "*",
-        "../../vendor/laravel/pulse": "^1.0.0@beta"
+        "laravel/pulse": "^1.0.0@beta"
     },
     "require-dev": {
-        "../../vendor/pestphp/pest": "^2.20",
-        "../../vendor/pestphp/pest-plugin-arch": "^2.0",
+        "pestphp/pest": "^2.20",
+        "pestphp/pest-plugin-arch": "^2.0",
         "pestphp/pest-plugin-laravel": "^2.0"
     },
     "autoload": {
