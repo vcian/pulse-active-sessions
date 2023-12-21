@@ -13,6 +13,7 @@ use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
 use Laravel\Sanctum\PersonalAccessToken;
 use ReflectionClass;
+use Vcian\Pulse\PulseActiveSessions\Constant;
 
 class PulseActiveSessionRecorder
 {
@@ -35,27 +36,25 @@ class PulseActiveSessionRecorder
 
     public function record(SharedBeat $event): void
     {
+        $driver = env('SESSION_DRIVER', 'file');
+        $apiDriver = config('auth.guards.api.driver');
+
         try {
-            //code...
-            $activeSessions['web'] = 0;
-            $activeSessions['api'] = 0;
-    
-            if ($event->time->second % 5 !== 0) {
+            $activeSessions['web'] = Constant::ZERO;
+            $activeSessions['api'] = Constant::ZERO;
+
+            if ($event->time->second % Constant::RENDER_TIME_SEC !== Constant::ZERO) {
                 return;
             }
-    
-            $driver = env('SESSION_DRIVER', 'file');
-            $apiDriver = config('auth.guards.api.driver');
-    
+
             if (!empty(config('auth.guards.sanctum'))) {
                 $apiDriver = config('auth.guards.sanctum.driver', $apiDriver);
             }
-    
+
             $activeSessions['api_driver'] = $apiDriver;
-    
             $userClass = new ReflectionClass(User::class);
             $traits = $userClass->getTraitNames();
-    
+
             if (in_array(\Laravel\Passport\HasApiTokens::class, $traits)) {
                 // Laravel Passport's HasApiTokens trait is used
                 $activeSessions['api_driver'] = $apiDriver ='passport';
@@ -63,7 +62,7 @@ class PulseActiveSessionRecorder
                 // Laravel Sanctum's HasApiTokens trait is used
                 $activeSessions['api_driver'] = $apiDriver = 'sanctum';
             }
-            
+
             if ($driver == 'database') {
                 $activeSessions['web'] = DB::table('sessions')
                     ->where('last_activity', '>', now()->subMinutes(config('session.lifetime')))
@@ -71,48 +70,48 @@ class PulseActiveSessionRecorder
                     ->count();
             } else if ($driver == 'file') {
                 $sessionPath = storage_path('framework/sessions');
-    
+
                 // Get all session files
                 $files = scandir($sessionPath);
-    
+
                 // Iterate through each file
                 foreach ($files as $file) {
                     Session::flush();
+
                     if ($file !== '.' && $file !== '..') {
                         // Read the content of the session file
                         $content = file_get_contents($sessionPath . '/' . $file);
-    
+
                         // Decode the session data
                         $data = unserialize($content);
-    
+
                         // Check if the session is not expired
                         if (isset($data['_token']) && isset($data['_last_activity'])) {
                             $lastActivity = $data['_last_activity'];
-    
+
                             if (now()->subMinutes(config('session.lifetime'))->timestamp < $lastActivity) {
                                 $activeSessions['web'] = $activeSessions['web'] + 1;
                             }
                         }
                     }
                 }
-    
             }
 
-            if($apiDriver == 'sanctum') {
+            if ($apiDriver == Constant::API_DRIVER_SANCTUM) {
                 $activeSessions['api'] = PersonalAccessToken::where(function ($query) {
                     $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
                 })->count();
-            } else if ($apiDriver == 'passport') { 
+            } else if ($apiDriver == Constant::API_DRIVER_PASSPORT) {
                 $activeSessions['api'] = Token::where(function ($query) {
                     $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
                 })
-                ->where('revoked', 0) // Consider only tokens that are not revoked
+                ->where('revoked', Constant::ZERO) // Consider only tokens that are not revoked
                 ->count();
             }
         } catch (Exception $e) {
             Log::info($e->getMessage());
         }
-        
+
 
         $this->pulse->set('pulse_active_session', 'result', json_encode($activeSessions));
     }
