@@ -65,7 +65,7 @@ class PulseActiveSessionRecorder
             }
             
             if ($driver == 'database') {
-                $activeSessions['web'] = DB::table('sessions')
+                $activeSessions['web'] = DB::table(config("session.table")
                     ->where('last_activity', '>', now()->subMinutes(config('session.lifetime')))
                     ->whereNotNull('user_id')
                     ->count();
