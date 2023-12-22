@@ -70,7 +70,7 @@ Then, you can modify the `dashboard.blade.php` file:
 
 </x-pulse>
 ```
-<p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/pulse-active-sessions/card-ss.png" width="100%" alt="Active Sessions Card"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/pulse-active-sessions/card-ss-new.png" width="100%" alt="Active Sessions Card"></p>
 
 To make pulse recorders will automatically capture entries based on framework events dispatched by Laravel, You must run the below command.
 ```

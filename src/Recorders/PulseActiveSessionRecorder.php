@@ -7,7 +7,6 @@ use Exception;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Session;
 use Laravel\Passport\Token;
 use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
@@ -34,18 +33,28 @@ class PulseActiveSessionRecorder
         //
     }
 
+    /**
+     * Record the job.
+     *
+     * @param SharedBeat $event
+     * @return void
+     */
     public function record(SharedBeat $event): void
     {
-        $driver = env('SESSION_DRIVER', 'file');
-        $apiDriver = config('auth.guards.api.driver');
-
         try {
-            $activeSessions['web'] = Constant::ZERO;
-            $activeSessions['api'] = Constant::ZERO;
+            $activeSessions = [
+                'web' => Constant::ZERO,
+                'api' => Constant::ZERO,
+                'total' => Constant::ZERO,
+                'api_driver' => 'sanctum', // Default value for api_driver
+            ];
 
             if ($event->time->second % Constant::RENDER_TIME_SEC !== Constant::ZERO) {
                 return;
             }
+
+            $driver = env('SESSION_DRIVER', 'file');
+            $apiDriver = config('auth.guards.api.driver');
 
             if (!empty(config('auth.guards.sanctum'))) {
                 $apiDriver = config('auth.guards.sanctum.driver', $apiDriver);
@@ -64,55 +73,86 @@ class PulseActiveSessionRecorder
             }
 
             if ($driver == 'database') {
-                $activeSessions['web'] = DB::table('sessions')
-                    ->where('last_activity', '>', now()->subMinutes(config('session.lifetime')))
-                    ->whereNotNull('user_id')
-                    ->count();
+                $activeSessions['web'] = $this->recordDatabase();
             } else if ($driver == 'file') {
                 $sessionPath = storage_path('framework/sessions');
-
-                // Get all session files
-                $files = scandir($sessionPath);
-
-                // Iterate through each file
-                foreach ($files as $file) {
-                    Session::flush();
-
-                    if ($file !== '.' && $file !== '..') {
-                        // Read the content of the session file
-                        $content = file_get_contents($sessionPath . '/' . $file);
-
-                        // Decode the session data
-                        $data = unserialize($content);
-
-                        // Check if the session is not expired
-                        if (isset($data['_token']) && isset($data['_last_activity'])) {
-                            $lastActivity = $data['_last_activity'];
-
-                            if (now()->subMinutes(config('session.lifetime'))->timestamp < $lastActivity) {
-                                $activeSessions['web'] = $activeSessions['web'] + 1;
-                            }
-                        }
-                    }
-                }
+                $activeSessions['web'] = $this->countActiveFileSessions($sessionPath);
             }
 
-            if ($apiDriver == Constant::API_DRIVER_SANCTUM) {
-                $activeSessions['api'] = PersonalAccessToken::where(function ($query) {
-                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                })->count();
-            } else if ($apiDriver == Constant::API_DRIVER_PASSPORT) {
-                $activeSessions['api'] = Token::where(function ($query) {
-                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                })
-                ->where('revoked', Constant::ZERO) // Consider only tokens that are not revoked
-                ->count();
-            }
+            $activeSessions['api'] = match ($apiDriver) {
+                'sanctum' => $this->recordSanctum(),
+                'passport' => $this->recordPassport(),
+                default => Constant::ZERO, // You may want to set a default value based on your requirements
+            };
+
+            $activeSessions['total'] = $activeSessions['web'] + $activeSessions['api'];
         } catch (Exception $e) {
             Log::info($e->getMessage());
         }
 
-
         $this->pulse->set('pulse_active_session', 'result', json_encode($activeSessions));
+    }
+
+    /**
+     * Record the sanctum token count.
+     *
+     * @return int
+     */
+    private function recordSanctum(): int
+    {
+        return PersonalAccessToken::where(function ($query) {
+            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+        })->count();
+    }
+
+    /**
+     * Record the passport token count.
+     * @return int
+     */
+    private function recordPassport(): int
+    {
+        return Token::where(function ($query) {
+            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+        })
+            ->where('revoked', 0) // Consider only tokens that are not revoked
+            ->count();
+    }
+
+    /**
+     * Record the session count
+     *
+     * @return int
+     */
+    private function recordDatabase(): int
+    {
+        return DB::table(config("session.table"))
+            ->where('last_activity', '>', now()->subMinutes(config('session.lifetime')))
+            ->whereNotNull('user_id')
+            ->count();
+    }
+
+    /**
+     * @param string $sessionPath
+     * @return int
+     */
+    private function countActiveFileSessions(string $sessionPath): int
+    {
+        $activeSessions = Constant::ZERO;
+        $files = array_diff(scandir($sessionPath), ['.', '..']);
+
+        foreach ($files as $file) {
+            $content = file_get_contents($sessionPath . '/' . $file);
+            $data = unserialize($content);
+
+            if (isset($data['_token'], $data['_last_activity'])) {
+                $lastActivity = $data['_last_activity'];
+
+                if (now()->subMinutes(config('session.lifetime'))->timestamp < $lastActivity) {
+                    $activeSessions++;
+                }
+            }
+        }
+
+        return $activeSessions;
     }
 }
