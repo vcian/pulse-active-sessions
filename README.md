@@ -1,3 +1,7 @@
+![Packagist License (custom server)](https://img.shields.io/packagist/l/vcian/pulse-active-sessions)
+![Packagist Downloads (custom server)](https://img.shields.io/packagist/dt/vcian/pulse-active-sessions)
+
+
 # Active Sessions card for Laravel Pulse
 
 This card will show total number of sessions in application.
@@ -66,6 +70,7 @@ Then, you can modify the `dashboard.blade.php` file:
 
 </x-pulse>
 ```
+<p align="center"><img src="https://raw.githubusercontent.com/vcian/art/main/pulse-active-sessions/card-ss.png" width="100%" alt="Active Sessions Card"></p>
 
 To make pulse recorders will automatically capture entries based on framework events dispatched by Laravel, You must run the below command.
 ```
