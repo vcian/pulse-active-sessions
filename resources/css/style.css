@@ -1,0 +1,11 @@
+.session-label {
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: black;
+} 
+.web-label{
+    background-color: #eab308;
+}
+.api-label{
+    background-color: #9333ea;
+}
