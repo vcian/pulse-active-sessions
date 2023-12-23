@@ -12,7 +12,6 @@ use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
 use Laravel\Sanctum\PersonalAccessToken;
 use ReflectionClass;
-use RuntimeException;
 use Vcian\Pulse\PulseActiveSessions\Constant;
 
 class PulseActiveSessionRecorder
@@ -28,10 +27,9 @@ class PulseActiveSessionRecorder
      * Create a new recorder instance.
      */
     public function __construct(
-        protected Pulse      $pulse,
+        protected Pulse $pulse,
         protected Repository $config
-    )
-    {
+    ) {
         //
     }
 
@@ -68,7 +66,7 @@ class PulseActiveSessionRecorder
 
             if (in_array(\Laravel\Passport\HasApiTokens::class, $traits)) {
                 // Laravel Passport's HasApiTokens trait is used
-                $activeSessions['api_driver'] = $apiDriver = 'passport';
+                $activeSessions['api_driver'] = $apiDriver ='passport';
             } elseif (in_array(\Laravel\Sanctum\HasApiTokens::class, $traits)) {
                 // Laravel Sanctum's HasApiTokens trait is used
                 $activeSessions['api_driver'] = $apiDriver = 'sanctum';
@@ -95,6 +93,31 @@ class PulseActiveSessionRecorder
         }
 
         $this->pulse->set('pulse_active_session', 'result', json_encode($activeSessions));
+    }
+
+    /**
+     * Record the sanctum token count.
+     *
+     * @return int
+     */
+    private function recordSanctum(): int
+    {
+        return PersonalAccessToken::where(function ($query) {
+            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+        })->count();
+    }
+
+    /**
+     * Record the passport token count.
+     * @return int
+     */
+    private function recordPassport(): int
+    {
+        return Token::where(function ($query) {
+            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+        })
+            ->where('revoked', 0) // Consider only tokens that are not revoked
+            ->count();
     }
 
     /**
@@ -133,30 +156,5 @@ class PulseActiveSessionRecorder
         }
 
         return $activeSessions;
-    }
-
-    /**
-     * Record the sanctum token count.
-     *
-     * @return int
-     */
-    private function recordSanctum(): int
-    {
-        return PersonalAccessToken::where(function ($query) {
-            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-        })->count();
-    }
-
-    /**
-     * Record the passport token count.
-     * @return int
-     */
-    private function recordPassport(): int
-    {
-        return Token::where(function ($query) {
-            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-        })
-            ->where('revoked', 0) // Consider only tokens that are not revoked
-            ->count();
     }
 }
