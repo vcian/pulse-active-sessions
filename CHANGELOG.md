@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to `laravel-db-auditor` will be documented in this file
+All notable changes to `pulse active sessions` will be documented in this file
+
+## v1.3.0 [26th Dec 2023]
+- Integrated redis session driver feature.
+- Show session driver on card.
+- Resolved issue #13.
+- Update changelog file.
+- Code refactoring.
 
 ## v1.2.0 [22nd Dec 2023]
 - Add doughnut chart in pulse active sessions card.
