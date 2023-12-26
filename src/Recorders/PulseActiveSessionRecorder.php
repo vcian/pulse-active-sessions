@@ -80,7 +80,6 @@ class PulseActiveSessionRecorder
                 $sessionPath = storage_path('framework/sessions');
                 $activeSessions['web'] = $this->countActiveFileSessions($sessionPath);
             } else if ($driver == 'redis') {
-                
                 $keys = array_map(fn($key) => str_replace(config('database.redis.options.prefix'), '', $key), Redis::keys('*'));
                 $data = array_map(fn($data) => unserialize(unserialize($data)), Redis::mget($keys));
                 $activeSessions['web'] = count($keys);
