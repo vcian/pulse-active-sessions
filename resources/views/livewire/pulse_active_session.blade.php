@@ -67,7 +67,7 @@
                         <tr wire:key="{{ $webLoginCount['web'] }}">
                             <x-pulse::td class="max-w-[1px]">
                                 <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="">
-                                    Web
+                                    Web ({{ config('session.driver') }})
                                 </code>
                                 
                             </x-pulse::td>
