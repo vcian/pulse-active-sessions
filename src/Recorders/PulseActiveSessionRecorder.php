@@ -12,6 +12,8 @@ use Laravel\Pulse\Events\SharedBeat;
 use Laravel\Pulse\Pulse;
 use Laravel\Sanctum\PersonalAccessToken;
 use ReflectionClass;
+use \Illuminate\Support\Facades\Redis;
+use RuntimeException;
 use Vcian\Pulse\PulseActiveSessions\Constant;
 
 class PulseActiveSessionRecorder
@@ -77,6 +79,11 @@ class PulseActiveSessionRecorder
             } else if ($driver == 'file') {
                 $sessionPath = storage_path('framework/sessions');
                 $activeSessions['web'] = $this->countActiveFileSessions($sessionPath);
+            } else if ($driver == 'redis') {
+                
+                $keys = array_map(fn($key) => str_replace(config('database.redis.options.prefix'), '', $key), Redis::keys('*'));
+                $data = array_map(fn($data) => unserialize(unserialize($data)), Redis::mget($keys));
+                $activeSessions['web'] = count($keys);
             } else {
                 throw new RuntimeException('Session driver for ' . $driver . ' is not yet implemented.');
             }

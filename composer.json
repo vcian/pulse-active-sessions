@@ -18,6 +18,7 @@
     "require": {
         "php": "^8.1",
         "illuminate/support": "*",
+        "predis/predis": "^2.2",
         "laravel/pulse": "^1.0.0@beta"
     },
     "require-dev": {

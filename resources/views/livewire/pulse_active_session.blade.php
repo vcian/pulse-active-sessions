@@ -27,12 +27,12 @@
             <div class="">
                 <div class="whitespace-nowrap tabular-nums">
                     <span class="session-label web-label text-xs">Web</span>
-                    <span class="text-sm">{{ round(($webLoginCount['web'] / $webLoginCount['total']) * 100, 2) }}%</span>
+                    <span class="text-sm">{{ $webLoginCount['total'] != 0 ? round(($webLoginCount['web'] / $webLoginCount['total']) * 100, 2)  : 0}}%</span>
                 </div>
                 <div class="h-2 first:h-0"></div>
                 <div class="whitespace-nowrap tabular-nums">
                     <span class="session-label api-label text-xs">Api</span>
-                    <span class="text-sm">{{ round(($webLoginCount['api'] / $webLoginCount['total']) * 100, 2) }}%</span>
+                    <span class="text-sm">{{ $webLoginCount['total'] != 0 ? round(($webLoginCount['api'] / $webLoginCount['total']) * 100, 2) : 0 }}%</span>
                 </div>
             </div>
             <div class="">
@@ -135,7 +135,7 @@ Alpine.data('storageChartDocker', (config) => ({
                             mode: 'nearest',
                             callbacks: {
                                 label: function(item) {
-                                    return  parseFloat(item.parsed / item.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(2) + '%';
+                                    return (item.dataset.data.reduce((a, b) => a + b, 0) != 0)  ? parseFloat(item.parsed / item.dataset.data.reduce((a, b) => a + b, 0) * 100).toFixed(2) + '%' : 0;
                                 }
                             },
                             displayColors: false,
