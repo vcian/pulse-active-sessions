@@ -77,6 +77,8 @@ class PulseActiveSessionRecorder
             } else if ($driver == 'file') {
                 $sessionPath = storage_path('framework/sessions');
                 $activeSessions['web'] = $this->countActiveFileSessions($sessionPath);
+            } else {
+                throw new RuntimeException('Session driver for ' . $driver . ' is not yet implemented.');
             }
 
             $activeSessions['api'] = match ($apiDriver) {

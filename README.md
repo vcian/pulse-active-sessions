@@ -40,6 +40,8 @@ return [
 
 You also need to be running [the `pulse:check` command](https://laravel.com/docs/10.x/pulse#dashboard-cards).
 
+Currently, this package will only work with `database` or `file` driver.
+
 ## Add to your dashboard
 
 To add the card to the Pulse dashboard, you must first [publish the vendor view](https://laravel.com/docs/10.x/pulse#dashboard-customization).
