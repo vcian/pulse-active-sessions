@@ -90,7 +90,7 @@ class PulseActiveSessionRecorder
 
                 // Get all keys from the Memcached server
                 $allKeys = Cache::store('memcached')->getStore()->getMemcached()->getAllKeys();
-                // dd(2, $allKeys);
+                
                 // Filter the keys to get only the session keys
                 $sessionKeys = array_filter($allKeys, function ($key) use ($prefix) {
                     return strpos($key, $prefix) === 0;
