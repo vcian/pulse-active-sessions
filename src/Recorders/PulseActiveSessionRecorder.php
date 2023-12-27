@@ -15,6 +15,7 @@ use ReflectionClass;
 use \Illuminate\Support\Facades\Redis;
 use RuntimeException;
 use Vcian\Pulse\PulseActiveSessions\Constant;
+use Illuminate\Support\Facades\Cache;
 
 class PulseActiveSessionRecorder
 {
@@ -83,6 +84,19 @@ class PulseActiveSessionRecorder
                 $keys = array_map(fn($key) => str_replace(config('database.redis.options.prefix'), '', $key), Redis::keys('*'));
                 $data = array_map(fn($data) => unserialize(unserialize($data)), Redis::mget($keys));
                 $activeSessions['web'] = count($keys);
+            } else if ($driver == 'memcached') {
+                // Define the prefix used by Laravel for storing sessions in Memcached
+                $prefix = config('cache.prefix');
+
+                // Get all keys from the Memcached server
+                $allKeys = Cache::store('memcached')->getStore()->getMemcached()->getAllKeys();
+                // dd(2, $allKeys);
+                // Filter the keys to get only the session keys
+                $sessionKeys = array_filter($allKeys, function ($key) use ($prefix) {
+                    return strpos($key, $prefix) === 0;
+                });
+                
+                $activeSessions['web'] = count($sessionKeys);
             } else {
                 throw new RuntimeException('Session driver for ' . $driver . ' is not yet implemented.');
             }
