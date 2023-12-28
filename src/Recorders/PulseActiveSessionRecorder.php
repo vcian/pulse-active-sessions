@@ -63,43 +63,21 @@ class PulseActiveSessionRecorder
                 $apiDriver = config('auth.guards.sanctum.driver', $apiDriver);
             }
 
-            $activeSessions['api_driver'] = $apiDriver;
             $userClass = new ReflectionClass(User::class);
             $traits = $userClass->getTraitNames();
 
-            if (in_array(\Laravel\Passport\HasApiTokens::class, $traits)) {
-                // Laravel Passport's HasApiTokens trait is used
-                $activeSessions['api_driver'] = $apiDriver ='passport';
-            } elseif (in_array(\Laravel\Sanctum\HasApiTokens::class, $traits)) {
-                // Laravel Sanctum's HasApiTokens trait is used
-                $activeSessions['api_driver'] = $apiDriver = 'sanctum';
-            }
+            $apiDriver = in_array(\Laravel\Passport\HasApiTokens::class, $traits) ? 'passport' :
+                (in_array(\Laravel\Sanctum\HasApiTokens::class, $traits) ? 'sanctum' : $apiDriver);
 
-            if ($driver == 'database') {
-                $activeSessions['web'] = $this->recordDatabase();
-            } else if ($driver == 'file') {
-                $sessionPath = storage_path('framework/sessions');
-                $activeSessions['web'] = $this->countActiveFileSessions($sessionPath);
-            } else if ($driver == 'redis') {
-                $keys = array_map(fn($key) => str_replace(config('database.redis.options.prefix'), '', $key), Redis::keys('*'));
-                $data = array_map(fn($data) => unserialize(unserialize($data)), Redis::mget($keys));
-                $activeSessions['web'] = count($keys);
-            } else if ($driver == 'memcached') {
-                // Define the prefix used by Laravel for storing sessions in Memcached
-                $prefix = config('cache.prefix');
+            $activeSessions['api_driver'] = $apiDriver;
 
-                // Get all keys from the Memcached server
-                $allKeys = Cache::store('memcached')->getStore()->getMemcached()->getAllKeys();
-                
-                // Filter the keys to get only the session keys
-                $sessionKeys = array_filter($allKeys, function ($key) use ($prefix) {
-                    return strpos($key, $prefix) === 0;
-                });
-                
-                $activeSessions['web'] = count($sessionKeys);
-            } else {
-                throw new RuntimeException('Session driver for ' . $driver . ' is not yet implemented.');
-            }
+            $activeSessions['web'] = match ($driver) {
+                'database' => $this->recordDatabase(),
+                'file' => $this->countActiveFileSessions(),
+                'redis' => $this->countActiveRedisSession(),
+                'memcached' => $this->countActiveMemcachedSession(),
+                default => throw new RuntimeException('Session driver for ' . $driver . ' is not yet implemented.'),
+            };
 
             $activeSessions['api'] = match ($apiDriver) {
                 'sanctum' => $this->recordSanctum(),
@@ -154,20 +132,23 @@ class PulseActiveSessionRecorder
     }
 
     /**
-     * @param string $sessionPath
+     * Get count of active file sessions
+     * 
      * @return int
      */
-    private function countActiveFileSessions(string $sessionPath): int
+    private function countActiveFileSessions(): int
     {
+        $sessionPath = storage_path('framework/sessions');
         $activeSessions = Constant::ZERO;
         $files = array_diff(scandir($sessionPath), ['.', '..']);
+        $files = array_values(array_diff($files, ['.gitignore'])); // Exclude .ignore file
 
         foreach ($files as $file) {
             $content = file_get_contents($sessionPath . '/' . $file);
             $data = unserialize($content);
 
-            if (isset($data['_token'], $data['_last_activity'])) {
-                $lastActivity = $data['_last_activity'];
+            if (isset($data['_token'], $data['auth']['password_confirmed_at'])) {
+                $lastActivity = $data['auth']['password_confirmed_at'];
 
                 if (now()->subMinutes(config('session.lifetime'))->timestamp < $lastActivity) {
                     $activeSessions++;
@@ -176,5 +157,38 @@ class PulseActiveSessionRecorder
         }
 
         return $activeSessions;
+    }
+
+    /**
+     * Get count of active redis sessions
+     *
+     * @return int
+     */
+    private function countActiveRedisSession(): int
+    {
+        $keys = array_map(fn($key) => str_replace(config('database.redis.options.prefix'), '', $key), Redis::keys('*'));
+        $data = array_map(fn($data) => unserialize(unserialize($data)), Redis::mget($keys));
+        return count($keys);
+    }
+
+    /**
+     * Get count of active memcached sessions
+     *
+     * @return int
+     */
+    private function countActiveMemcachedSession(): int
+    {
+        // Define the prefix used by Laravel for storing sessions in Memcached
+        $prefix = config('cache.prefix');
+
+        // Get all keys from the Memcached server
+        $allKeys = Cache::store('memcached')->getStore()->getMemcached()->getAllKeys();
+        
+        // Filter the keys to get only the session keys
+        $sessionKeys = array_filter($allKeys, function ($key) use ($prefix) {
+            return strpos($key, $prefix) === 0;
+        });
+        
+        return count($sessionKeys);
     }
 }
