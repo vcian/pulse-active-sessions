@@ -2,6 +2,13 @@
 
 All notable changes to `pulse active sessions` will be documented in this file
 
+## v1.4.0 [28th Dec 2023]
+- Integrated memcached session driver feature.
+- Update readme file.
+- Update changelog file.
+- Code refactoring.
+- Minor fixing.
+
 ## v1.3.0 [26th Dec 2023]
 - Integrated redis session driver feature.
 - Show session driver on card.
