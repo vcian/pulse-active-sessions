@@ -10,4 +10,4 @@ jobs:
   update:
     permissions:
       contents: write
-    uses: pulse-active-sessions/.github/workflows/update-changelog.yml@main
+    uses: vcian/pulse-active-sessions/.github/.github/workflows/update-changelog.yml@main
