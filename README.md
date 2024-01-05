@@ -71,16 +71,7 @@ Then, you can modify the `dashboard.blade.php` file:
 </x-pulse>
 ```
 
-## Supported session drivers
-```
-- database
-- file
-- redis
-- memcached
-
-```
-
-<img src="https://raw.githubusercontent.com/vcian/pulse-active-sessions/main/card-ss.png" width="100%" alt="Active Sessions Card">
+<img src="/art/card-ss.png" width="100%" alt="Active Sessions Card">
 
 To make pulse recorders will automatically capture entries based on framework events dispatched by Laravel, You must run the below command.
 ```
