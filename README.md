@@ -40,8 +40,6 @@ return [
 
 You also need to be running [the `pulse:check` command](https://laravel.com/docs/10.x/pulse#dashboard-cards).
 
-Currently, this package will only work with `database` or `file` driver.
-
 ## Add to your dashboard
 
 To add the card to the Pulse dashboard, you must first [publish the vendor view](https://laravel.com/docs/10.x/pulse#dashboard-customization).
@@ -82,7 +80,7 @@ Then, you can modify the `dashboard.blade.php` file:
 
 ```
 
-<p align="center"><img src="https://raw.githubusercontent.com/vcian/pulse-active-sessions/main/card-ss.png" width="100%" alt="Active Sessions Card"></p>
+<img src="https://raw.githubusercontent.com/vcian/pulse-active-sessions/main/card-ss.png" width="100%" alt="Active Sessions Card">
 
 To make pulse recorders will automatically capture entries based on framework events dispatched by Laravel, You must run the below command.
 ```
@@ -90,6 +88,13 @@ php artisan pulse:check
 ```
 
 That's it!
+
+## Supported session drivers
+
+- database
+- file
+- redis
+- memcached
 
 ## Changelog
 
