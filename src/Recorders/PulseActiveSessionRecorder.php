@@ -3,6 +3,7 @@
 namespace Vcian\Pulse\PulseActiveSessions\Recorders;
 
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Exception;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Facades\DB;
@@ -79,11 +80,29 @@ class PulseActiveSessionRecorder
                 default => throw new RuntimeException('Session driver for ' . $driver . ' is not yet implemented.'),
             };
 
+            if (in_array($driver, ['database', 'file', 'redis', 'memcached'])) {
+                $this->pulse->record(
+                    type: 'login_hit',
+                    key: "active_session",
+                    value: $activeSessions['web'],
+                    timestamp: CarbonImmutable::now()->getTimestamp(),
+                )->max()->onlyBuckets();
+            }
+
             $activeSessions['api'] = match ($apiDriver) {
                 'sanctum' => $this->recordSanctum(),
                 'passport' => $this->recordPassport(),
                 default => Constant::ZERO, // You may want to set a default value based on your requirements
             };
+
+            if (in_array($apiDriver, ['sanctum', 'passport'])) {
+                $this->pulse->record(
+                    type: 'api_hit',
+                    key: "active_session",
+                    value: $activeSessions['api'],
+                    timestamp: CarbonImmutable::now()->getTimestamp(),
+                )->max()->onlyBuckets();
+            }
 
             $activeSessions['total'] = $activeSessions['web'] + $activeSessions['api'];
         } catch (Exception $e) {
