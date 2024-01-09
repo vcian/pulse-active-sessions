@@ -2,6 +2,16 @@
 
 All notable changes to `pulse active sessions` will be documented in this file
 
+## Introduce a historical graph for session. - 2024-01-09
+
+### What's Changed
+
+* Update readme. by @ruchit288 in https://github.com/vcian/pulse-active-sessions/pull/25
+* Update license file. by @ruchit288 in https://github.com/vcian/pulse-active-sessions/pull/26
+* Add historical graph for sessions by @vc-vinay in https://github.com/vcian/pulse-active-sessions/pull/27
+
+**Full Changelog**: https://github.com/vcian/pulse-active-sessions/compare/v1.4.1...v1.5.0
+
 ## Update change log workflow file and readme file. - 2024-01-02
 
 ### What's Changed
