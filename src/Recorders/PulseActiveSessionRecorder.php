@@ -63,8 +63,8 @@ class PulseActiveSessionRecorder
             if (!empty(config('auth.guards.sanctum'))) {
                 $apiDriver = config('auth.guards.sanctum.driver', $apiDriver);
             }
-
-            $userClass = new ReflectionClass(User::class);
+            
+            $userClass = new ReflectionClass(config('auth.providers.users.model', User::class));
             $traits = $userClass->getTraitNames();
 
             $apiDriver = in_array(\Laravel\Passport\HasApiTokens::class, $traits) ? 'passport' :
