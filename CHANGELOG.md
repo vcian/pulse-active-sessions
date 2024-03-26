@@ -2,6 +2,15 @@
 
 All notable changes to `pulse active sessions` will be documented in this file
 
+## Fix issue #29 - 2024-03-26
+
+### What's Changed
+
+* Update the card image by @vc-vinay in https://github.com/vcian/pulse-active-sessions/pull/28
+* Fix issue #29: hardcoded App\Models\User by @vc-vinay in https://github.com/vcian/pulse-active-sessions/pull/30
+
+**Full Changelog**: https://github.com/vcian/pulse-active-sessions/compare/v1.5.0...v1.5.1
+
 ## Introduce a historical graph for session. - 2024-01-09
 
 ### What's Changed
