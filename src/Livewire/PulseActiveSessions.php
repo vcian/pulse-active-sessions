@@ -18,6 +18,9 @@ class PulseActiveSessions extends Card
     public $filters;
     public $provider;
 
+    /**
+     * @return void
+     */
     public function mount()
     {
         $this->filters = authProviders();
@@ -25,6 +28,10 @@ class PulseActiveSessions extends Card
         $this->provider = authProviders()[0];
     }
 
+    /**
+     * @return \Illuminate\Contracts\View\View
+     * @throws \JsonException
+     */
     public function render()
     {
         // Get the data out of the Pulse data store.
@@ -76,6 +83,9 @@ class PulseActiveSessions extends Card
             : [];
     }
 
+    /**
+     * @return string
+     */
     protected function css()
     {
         return __DIR__ . '/../../resources/css/style.css';

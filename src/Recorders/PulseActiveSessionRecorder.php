@@ -49,6 +49,7 @@ class PulseActiveSessionRecorder
     {
         try {
             $authProviders = authProviders();
+
             foreach ($authProviders as $authProvider) {
                 $activeSessions = [
                     'web' => Constant::ZERO,
@@ -113,7 +114,7 @@ class PulseActiveSessionRecorder
                 $this->pulse->set('pulse_active_session_' . $authProvider, 'result', json_encode($activeSessions));
             }
         } catch (Exception $e) {
-            Log::info($e->getMessage());
+            Log::error($e->getMessage());
         }
     }
 

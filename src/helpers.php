@@ -4,31 +4,35 @@ if (!function_exists('authProviders')) {
     /**
      * @return array
      */
-    function authProviders() : array
+    function authProviders(): array
     {
         return array_keys(config('auth.providers'));
     }
 }
-if (!function_exists('authProviderModel'))
-{
+if (!function_exists('authProviderModel')) {
     /**
      * @param $provider
      * @return mixed|string
      */
     function authProviderModel($provider)
     {
-        if(!$provider) {
+        if (!$provider) {
             return '';
         }
-        return call_user_func(config('auth.providers.'.$provider.'.model').'::query');
+
+        return call_user_func(config('auth.providers.' . $provider . '.model') . '::query');
     }
 }
 
-if(!function_exists('authGuards')) {
-    function authGuards($authProvider)
+if (!function_exists('authGuards')) {
+    /**
+     * @param $authProvider
+     * @return array
+     */
+    function authGuards($authProvider): array
     {
         $authGuards = config('auth.guards');
-        return array_keys(array_filter($authGuards, function($guard) use ($authProvider) {
+        return array_keys(array_filter($authGuards, function ($guard) use ($authProvider) {
             return ($guard['provider'] === $authProvider && $guard['driver'] === 'session');
         }));
     }
