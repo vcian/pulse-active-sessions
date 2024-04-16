@@ -20,7 +20,7 @@
                                 <select wire:change="filterByProviders(event.target.value)"
                                         class="overflow-ellipsis w-full border-0 pl-3 pr-8 py-1 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs sm:text-sm shadow-none focus:ring-0">
                                     @foreach ($filters as $filter)
-                                        <option value="{{ $filter }}">{{ $filter }}</option>
+                                        <option value="{{ $filter }}">{{ ucfirst($filter) }}</option>
                                     @endforeach
                                 </select>
                             @endif
