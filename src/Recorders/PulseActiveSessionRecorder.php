@@ -2,7 +2,6 @@
 
 namespace Vcian\Pulse\PulseActiveSessions\Recorders;
 
-use App\Models\User;
 use Carbon\CarbonImmutable;
 use Exception;
 use Illuminate\Config\Repository;
@@ -15,7 +14,6 @@ use Laravel\Pulse\Pulse;
 use Laravel\Sanctum\PersonalAccessToken;
 use ReflectionClass;
 use \Illuminate\Support\Facades\Redis;
-use RuntimeException;
 use Vcian\Pulse\PulseActiveSessions\Constant;
 use Illuminate\Support\Facades\Cache;
 
@@ -51,21 +49,22 @@ class PulseActiveSessionRecorder
             if ($event->time->second % Constant::RENDER_TIME_SEC !== Constant::ZERO) {
                 return;
             }
-            $authProviders = authProviders();
 
-            foreach ($authProviders as $authProvider) {
+            foreach (authProviders() as $authProvider) {
                 $activeSessions = [
                     'web' => Constant::ZERO,
                     'api' => Constant::ZERO,
                     'total' => Constant::ZERO,
                     'api_driver' => Constant::API_DRIVER_SANCTUM, // Default value for api_driver
                 ];
+
                 $key = "active_session_" . $authProvider;
                 $driver = env('SESSION_DRIVER', 'file');
                 $apiDriver = config(
                     'auth.guards.sanctum.driver',
                     Constant::API_DRIVER_SANCTUM
                 );
+
                 // Web Pulse Entries
                 $activeSessions['web'] = $this->activeSessionDriver($driver, $authProvider);
 
@@ -77,6 +76,7 @@ class PulseActiveSessionRecorder
                 $userClass = new ReflectionClass(
                     config('auth.providers.users.model', Constant::DEFAULT_MODEL)
                 );
+
                 $traits = $userClass->getTraitNames();
 
                 $apiDriver = in_array(Constant::PASSPORT_NAMESPACE, $traits)
@@ -125,11 +125,11 @@ class PulseActiveSessionRecorder
      */
     private function recordPassport($authProvider): int
     {
-        $users = Token::query()->where(function ($query) {
-            $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-        })->where('revoked', 0)->pluck('user_id');  // Consider only tokens that are not revoked
-
-        return authProviderModel($authProvider)->whereIn('id', $users)->count();
+        return authProviderModel($authProvider)->whereIn('id',
+            Token::query()->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })->where('revoked', 0)->pluck('user_id')
+        )->count();
     }
 
     /**
@@ -142,6 +142,7 @@ class PulseActiveSessionRecorder
     {
         $response = Constant::ZERO;
         $guards = authGuards($authProvider);
+
         try {
             $sessions = DB::table('sessions')
                 ->where('last_activity', '>', now()->subMinutes(config('session.lifetime')))
