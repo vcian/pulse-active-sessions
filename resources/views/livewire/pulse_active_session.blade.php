@@ -15,6 +15,16 @@
                             <div class="h-0.5 w-3 rounded-full bg-[#eab308]"></div>
                             Web
                         </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            @if ($filters)
+                                <select wire:change="filterByProviders(event.target.value)"
+                                        class="overflow-ellipsis w-full border-0 pl-3 pr-8 py-1 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs sm:text-sm shadow-none focus:ring-0">
+                                    @foreach ($filters as $filter)
+                                        <option value="{{ $filter }}">{{ ucfirst($filter) }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,7 +79,7 @@
                                 <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="">
                                     Web ({{ config('session.driver') }})
                                 </code>
-                                
+
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                 {{ $webLoginCount['web'] }}
@@ -81,7 +91,7 @@
                                 <code class="block text-xs text-gray-900 dark:text-gray-100 truncate" title="">
                                  Api ({{ $webLoginCount['api_driver'] }})
                                 </code>
-                                
+
                             </x-pulse::td>
                             <x-pulse::td numeric class="text-gray-700 dark:text-gray-300 font-bold">
                                 {{ $webLoginCount['api'] }}
@@ -281,7 +291,7 @@ Alpine.data('sessionChart', (config) => ({
             if (chart === undefined) {
                 return
             }
-            
+
             if (session[config.queue] === undefined && chart) {
                 chart.destroy()
                 chart = undefined

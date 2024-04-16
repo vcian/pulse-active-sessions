@@ -8,7 +8,6 @@ class Constant
     public const RENDER_TIME_SEC = 5;
     public const API_DRIVER_SANCTUM = "sanctum";
     public const API_DRIVER_PASSPORT = "passport";
-
-
-
+    public const WEB = 'web';
+    public const USERS = 'users';
 }
