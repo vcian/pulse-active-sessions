@@ -1,6 +1,7 @@
 <?php
 
 namespace Vcian\Pulse\PulseActiveSessions;
+use App\Models\User;
 
 class Constant
 {
@@ -10,4 +11,8 @@ class Constant
     public const API_DRIVER_PASSPORT = "passport";
     public const WEB = 'web';
     public const USERS = 'users';
+
+    public const DEFAULT_MODEL = User::class;
+    public const PASSPORT_NAMESPACE = \Laravel\Passport\HasApiTokens::class;
+    public const SANCTUM_NAMESPACE = \Laravel\Sanctum\HasApiTokens::class;
 }

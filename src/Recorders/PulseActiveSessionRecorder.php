@@ -48,6 +48,9 @@ class PulseActiveSessionRecorder
     public function record(SharedBeat $event): void
     {
         try {
+            if ($event->time->second % Constant::RENDER_TIME_SEC !== Constant::ZERO) {
+                return;
+            }
             $authProviders = authProviders();
 
             foreach ($authProviders as $authProvider) {
@@ -57,56 +60,37 @@ class PulseActiveSessionRecorder
                     'total' => Constant::ZERO,
                     'api_driver' => Constant::API_DRIVER_SANCTUM, // Default value for api_driver
                 ];
-
-                if ($event->time->second % Constant::RENDER_TIME_SEC !== Constant::ZERO) {
-                    return;
-                }
-
+                $key = "active_session_" . $authProvider;
                 $driver = env('SESSION_DRIVER', 'file');
-                $apiDriver = config('auth.guards.api.driver');
+                $apiDriver = config(
+                    'auth.guards.sanctum.driver',
+                    Constant::API_DRIVER_SANCTUM
+                );
+                // Web Pulse Entries
+                $activeSessions['web'] = $this->activeSessionDriver($driver, $authProvider);
 
-                if (!empty(config('auth.guards.sanctum'))) {
-                    $apiDriver = config('auth.guards.sanctum.driver', $apiDriver);
+                if (in_array($driver, $this->supportedDrivers())) {
+                    $this->storePulseRecord('login_hit', $key, $activeSessions['web']);
                 }
 
-                $userClass = new ReflectionClass(config('auth.providers.users.model', User::class));
+                // API Pulse Entries
+                $userClass = new ReflectionClass(
+                    config('auth.providers.users.model', Constant::DEFAULT_MODEL)
+                );
                 $traits = $userClass->getTraitNames();
 
-                $apiDriver = in_array(\Laravel\Passport\HasApiTokens::class, $traits) ? 'passport' :
-                    (in_array(\Laravel\Sanctum\HasApiTokens::class, $traits) ? 'sanctum' : $apiDriver);
+                $apiDriver = in_array(Constant::PASSPORT_NAMESPACE, $traits)
+                    ? Constant::API_DRIVER_PASSPORT
+                    : (in_array(Constant::SANCTUM_NAMESPACE, $traits)
+                        ? Constant::API_DRIVER_SANCTUM
+                        : $apiDriver
+                    );
 
                 $activeSessions['api_driver'] = $apiDriver;
+                $activeSessions['api'] = $this->activePersonAccessTokenMethod($apiDriver, $authProvider);
 
-                $activeSessions['web'] = match ($driver) {
-                    'database' => $this->recordDatabase($authProvider),
-                    'file' => $this->countActiveFileSessions($authProvider),
-                    'redis' => $this->countActiveRedisSession($authProvider),
-                    'memcached' => $this->countActiveMemcachedSession($authProvider),
-                    default => throw new RuntimeException('Session driver for ' . $driver . ' is not yet implemented.'),
-                };
-
-                if (in_array($driver, ['database', 'file', 'redis', 'memcached'])) {
-                    $this->pulse->record(
-                        type: 'login_hit',
-                        key: "active_session_" . $authProvider,
-                        value: $activeSessions['web'],
-                        timestamp: CarbonImmutable::now()->getTimestamp(),
-                    )->max()->onlyBuckets();
-                }
-
-                $activeSessions['api'] = match ($apiDriver) {
-                    'sanctum' => $this->recordSanctum($authProvider),
-                    'passport' => $this->recordPassport($authProvider),
-                    default => Constant::ZERO, // You may want to set a default value based on your requirements
-                };
-
-                if (in_array($apiDriver, ['sanctum', 'passport'])) {
-                    $this->pulse->record(
-                        type: 'api_hit',
-                        key: "active_session_" . $authProvider,
-                        value: $activeSessions['api'],
-                        timestamp: CarbonImmutable::now()->getTimestamp(),
-                    )->max()->onlyBuckets();
+                if (in_array($apiDriver, $this->supportedPersonalAccessTokenMethods())) {
+                    $this->storePulseRecord('api_hit', $key, $activeSessions['api']);
                 }
 
                 $activeSessions['total'] = $activeSessions['web'] + $activeSessions['api'];
@@ -274,5 +258,56 @@ class PulseActiveSessionRecorder
         }
 
         return $active;
+    }
+
+    /**
+     * @param string $type
+     * @param string $key
+     * @param int $value
+     * @return void
+     */
+    private function storePulseRecord(string $type, string $key, int $value): void
+    {
+        $this->pulse->record(
+            type: $type,
+            key: $key,
+            value: $value,
+            timestamp: CarbonImmutable::now()->getTimestamp()
+        )->max()->onlyBuckets();
+    }
+    /**
+     * @return string[]
+     */
+    private function supportedDrivers(): array
+    {
+        return [
+            'database',
+            'file',
+            'redis',
+            'memcached'
+        ];
+    }
+    /**
+     * @return string[]
+     */
+    private function supportedPersonalAccessTokenMethods(): array
+    {
+        return [
+            'sanctum',
+            'passport'
+        ];
+    }
+    /**
+     * @param $apiDriver
+     * @param $authProvider
+     * @return int
+     */
+    private function activePersonAccessTokenMethod($apiDriver, $authProvider): int
+    {
+        return match ($apiDriver) {
+            'sanctum' => $this->recordSanctum($authProvider),
+            'passport' => $this->recordPassport($authProvider),
+            default => Constant::ZERO,
+        };
     }
 }
