@@ -3,7 +3,6 @@
 namespace Vcian\Pulse\PulseActiveSessions\Recorders;
 
 use Carbon\CarbonImmutable;
-use Exception;
 use Illuminate\Config\Repository;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -38,67 +37,23 @@ class PulseActiveSessionRecorder
     }
 
     /**
-     * Record the job.
-     *
      * @param SharedBeat $event
      * @return void
+     * @throws \ReflectionException
      */
     public function record(SharedBeat $event): void
     {
-        try {
-            if ($event->time->second % Constant::RENDER_TIME_SEC !== Constant::ZERO) {
-                return;
-            }
+        if ($event->time->second % Constant::RENDER_TIME_SEC !== Constant::ZERO) {
+            return;
+        }
 
-            foreach (authProviders() as $authProvider) {
-                $activeSessions = [
-                    'web' => Constant::ZERO,
-                    'api' => Constant::ZERO,
-                    'total' => Constant::ZERO,
-                    'api_driver' => Constant::API_DRIVER_SANCTUM, // Default value for api_driver
-                ];
+        foreach (authProviders() as $authProvider) {
+            $activeSessions['web'] = $this->webLoginCounts($authProvider);
+            $activeSessions['api_driver'] = $this->currentApiDriver();
+            $activeSessions['api'] = $this->apiLoginCounts($activeSessions['api_driver'], $authProvider);
+            $activeSessions['total'] = $activeSessions['web'] + $activeSessions['api'];
 
-                $key = "active_session_" . $authProvider;
-                $driver = env('SESSION_DRIVER', 'file');
-                $apiDriver = config(
-                    'auth.guards.sanctum.driver',
-                    Constant::API_DRIVER_SANCTUM
-                );
-
-                // Web Pulse Entries
-                $activeSessions['web'] = $this->activeSessionDriver($driver, $authProvider);
-
-                if (in_array($driver, $this->supportedDrivers())) {
-                    $this->storePulseRecord('login_hit', $key, $activeSessions['web']);
-                }
-
-                // API Pulse Entries
-                $userClass = new ReflectionClass(
-                    config('auth.providers.users.model', Constant::DEFAULT_MODEL)
-                );
-
-                $traits = $userClass->getTraitNames();
-
-                $apiDriver = in_array(Constant::PASSPORT_NAMESPACE, $traits)
-                    ? Constant::API_DRIVER_PASSPORT
-                    : (in_array(Constant::SANCTUM_NAMESPACE, $traits)
-                        ? Constant::API_DRIVER_SANCTUM
-                        : $apiDriver
-                    );
-
-                $activeSessions['api_driver'] = $apiDriver;
-                $activeSessions['api'] = $this->activePersonAccessTokenMethod($apiDriver, $authProvider);
-
-                if (in_array($apiDriver, $this->supportedPersonalAccessTokenMethods())) {
-                    $this->storePulseRecord('api_hit', $key, $activeSessions['api']);
-                }
-
-                $activeSessions['total'] = $activeSessions['web'] + $activeSessions['api'];
-
-                $this->pulse->set('pulse_active_session_' . $authProvider, 'result', json_encode($activeSessions));
-            }
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $this->pulse->set('pulse_active_session_' . $authProvider, 'result', json_encode($activeSessions));
         }
     }
 
@@ -125,11 +80,17 @@ class PulseActiveSessionRecorder
      */
     private function recordPassport($authProvider): int
     {
-        return authProviderModel($authProvider)->whereIn('id',
-            Token::query()->where(function ($query) {
-                $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })->where('revoked', 0)->pluck('user_id')
-        )->count();
+        $activeTokens = Token::query()->whereNull('expires_at')
+            ->orWhere('expires_at', '>', now())
+            ->where('revoked', 0)
+            ->pluck('user_id');
+
+        $tokenCounts = array_count_values($activeTokens->toArray());
+        $uniqueClientIds = array_keys($tokenCounts);
+
+        return authProviderModel($authProvider)
+                ->whereIn('id', $uniqueClientIds)
+                ->count() + (array_sum($tokenCounts) - count($uniqueClientIds));
     }
 
     /**
@@ -175,7 +136,7 @@ class PulseActiveSessionRecorder
      */
     private function countActiveFileSessions($authProvider): int
     {
-        $activeSession = Constant::ZERO;
+        $response = Constant::ZERO;
 
         foreach (glob(base_path() . "/storage/framework/sessions/*") as $filename) {
             $payload = unserialize(file_get_contents($filename));
@@ -183,13 +144,13 @@ class PulseActiveSessionRecorder
             if ($lastActivity && now()->subMinutes(config('session.lifetime'))->timestamp < $lastActivity) {
                 foreach ($payload as $key => $value) {
                     if ($this->guardMatch($authProvider, $key)) {
-                        $activeSession++;
+                        $response++;
                     }
                 }
             }
         }
 
-        return $activeSession;
+        return $response;
     }
 
     /**
@@ -202,19 +163,19 @@ class PulseActiveSessionRecorder
     {
         $keys = array_map(fn($key) => str_replace(config('database.redis.options.prefix'), '', $key), Redis::keys('*'));
         $sessionData = array_map(fn($data) => unserialize(unserialize($data)), Redis::mget($keys));
-        $activeSession = Constant::ZERO;
+        $response = Constant::ZERO;
 
         if ($sessionData) {
             foreach ($sessionData as $session) {
                 foreach ($session as $key => $value) {
                     if ($this->guardMatch($authProvider, $key)) {
-                        $activeSession++;
+                        $response++;
                     }
                 }
             }
         }
 
-        return $activeSession;
+        return $response;
     }
 
     /**
@@ -228,18 +189,18 @@ class PulseActiveSessionRecorder
         $memcachedStore = Cache::store('memcached')->getStore();
         $memcached = $memcachedStore->getMemcached();
         $memcacheData = $memcached->getAllKeys();
-        $activeSession = Constant::ZERO;
+        $response = Constant::ZERO;
 
         foreach ($memcacheData as $data) {
             $payload = unserialize($memcached->get($data));
             foreach ($payload as $key => $value) {
                 if ($this->guardMatch($authProvider, $key)) {
-                    $activeSession++;
+                    $response++;
                 };
             }
         }
 
-        return $activeSession;
+        return $response;
     }
 
     /**
@@ -276,6 +237,7 @@ class PulseActiveSessionRecorder
             timestamp: CarbonImmutable::now()->getTimestamp()
         )->max()->onlyBuckets();
     }
+
     /**
      * @return string[]
      */
@@ -288,6 +250,7 @@ class PulseActiveSessionRecorder
             'memcached'
         ];
     }
+
     /**
      * @return string[]
      */
@@ -298,17 +261,81 @@ class PulseActiveSessionRecorder
             'passport'
         ];
     }
+
+    /**
+     * @return Repository|\Illuminate\Contracts\Foundation\Application|\Illuminate\Foundation\Application|mixed|string
+     * @throws \ReflectionException
+     */
+    private function currentApiDriver()
+    {
+        $apiDriver = config(
+            'auth.guards.sanctum.driver',
+            Constant::API_DRIVER_SANCTUM
+        );
+
+        $userClass = new ReflectionClass(
+            config('auth.providers.users.model', Constant::DEFAULT_MODEL)
+        );
+        $traits = $userClass->getTraitNames();
+
+        return in_array(Constant::PASSPORT_NAMESPACE, $traits)
+            ? Constant::API_DRIVER_PASSPORT
+            : (in_array(Constant::SANCTUM_NAMESPACE, $traits)
+                ? Constant::API_DRIVER_SANCTUM
+                : $apiDriver
+            );
+    }
+
     /**
      * @param $apiDriver
      * @param $authProvider
      * @return int
      */
-    private function activePersonAccessTokenMethod($apiDriver, $authProvider): int
+    private function apiLoginCounts($apiDriver, $authProvider): int
     {
-        return match ($apiDriver) {
+        $key = "active_session_" . $authProvider;
+        
+        $response = match ($apiDriver) {
             'sanctum' => $this->recordSanctum($authProvider),
             'passport' => $this->recordPassport($authProvider),
             default => Constant::ZERO,
         };
+
+        if (in_array($apiDriver, $this->supportedPersonalAccessTokenMethods())) {
+            $this->storePulseRecord('api_hit', $key, $response);
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param $driver
+     * @param $authProvider
+     * @return int
+     */
+    private function webLoginCounts($authProvider): int
+    {
+        $key = "active_session_" . $authProvider;
+        $driver = env('SESSION_DRIVER', 'file');
+
+        $response = match ($driver) {
+            'database' => $this->recordDatabase($authProvider),
+            'file' => $this->countActiveFileSessions($authProvider),
+            'redis' => $this->countActiveRedisSession($authProvider),
+            'memcached' => $this->countActiveMemcachedSession($authProvider),
+            default => throw new RuntimeException(
+                'Session driver for ' . $driver . ' is not yet implemented.'
+            ),
+        };
+
+        if (in_array($driver, $this->supportedDrivers())) {
+            $this->storePulseRecord(
+                'login_hit',
+                $key,
+                $response
+            );
+        }
+
+        return $response;
     }
 }
