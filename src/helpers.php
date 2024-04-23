@@ -1,12 +1,14 @@
 <?php
 
+use Vcian\Pulse\PulseActiveSessions\Constant;
+
 if (!function_exists('authProviders')) {
     /**
      * @return array
      */
     function authProviders(): array
     {
-        return array_keys(config('auth.providers'));
+        return array_keys(config('auth.providers')) ?? [Constant::USERS];
     }
 }
 if (!function_exists('authProviderModel')) {
