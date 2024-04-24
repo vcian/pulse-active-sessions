@@ -2,6 +2,21 @@
 
 All notable changes to `pulse active sessions` will be documented in this file
 
+## v1.6.0 - 2024-04-24
+
+### What's Changed
+
+* Integrate Auth providers specific active session by @vc-dhavaljoshi in https://github.com/vcian/pulse-active-sessions/pull/31
+* Code refactoring and improvement by @vc-dhavaljoshi in https://github.com/vcian/pulse-active-sessions/pull/32
+* Code refactoring. by @ruchit288 in https://github.com/vcian/pulse-active-sessions/pull/33
+* Bug fixing and code Improvement by @vc-dhavaljoshi in https://github.com/vcian/pulse-active-sessions/pull/34
+
+### New Contributors
+
+* @vc-dhavaljoshi made their first contribution in https://github.com/vcian/pulse-active-sessions/pull/31
+
+**Full Changelog**: https://github.com/vcian/pulse-active-sessions/compare/v1.5.1...v1.6.0
+
 ## Fix issue #29 - 2024-03-26
 
 ### What's Changed
