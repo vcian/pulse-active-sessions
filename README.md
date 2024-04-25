@@ -87,6 +87,10 @@ That's it!
 - redis
 - memcached
 
+## Not Supported
+
+- Passport : This will not support when multiple providers used as authentication.It only while using single provider.
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
