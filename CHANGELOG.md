@@ -2,6 +2,16 @@
 
 All notable changes to `pulse active sessions` will be documented in this file
 
+## v1.7.0 - 2024-08-02
+
+### What's Changed
+
+* Update readme file. by @ruchit288 in https://github.com/vcian/pulse-active-sessions/pull/35
+* Add threshold flag by @vc-vinay in https://github.com/vcian/pulse-active-sessions/pull/36
+* Update readme file by @vc-vinay in https://github.com/vcian/pulse-active-sessions/pull/37
+
+**Full Changelog**: https://github.com/vcian/pulse-active-sessions/compare/v1.6.0...v1.7.0
+
 ## v1.6.0 - 2024-04-24
 
 ### What's Changed
