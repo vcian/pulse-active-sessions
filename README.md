@@ -71,7 +71,19 @@ Then, you can modify the `dashboard.blade.php` file:
 </x-pulse>
 ```
 
-<img src="/art/card-ss.png" width="100%" alt="Active Sessions Card">
+Then, you can add setting in the `pulse.php` config file:
+
+```diff
++    'active_session_threshold' => 100,
+```
+
+<img src="/art/card-1.png" width="100%" alt="Active Sessions Card">
+
+<img src="/art/card-2.png" width="100%" alt="Active Sessions Card">
+
+<img src="/art/card-3.png" width="100%" alt="Active Sessions Card">
+
+<img src="/art/card-4.png" width="100%" alt="Active Sessions Card">
 
 To make pulse recorders will automatically capture entries based on framework events dispatched by Laravel, You must run the below command.
 ```

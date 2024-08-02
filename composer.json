@@ -19,7 +19,7 @@
         "php": "^8.1",
         "illuminate/support": "*",
         "predis/predis": "^2.2",
-        "laravel/pulse": "^1.0.0@beta"
+        "laravel/pulse": "^1.2.0"
     },
     "require-dev": {
         "pestphp/pest": "^2.20",
