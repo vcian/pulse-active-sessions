@@ -17,6 +17,8 @@ class PulseActiveSessions extends Card
     public object $session;
     public array $filters;
     public string $provider;
+    public array $activeSessionThreshold = [];
+    public string $color;
 
     /**
      * @return void
@@ -26,6 +28,12 @@ class PulseActiveSessions extends Card
         $this->filters = authProviders();
         $this->session = collect();
         $this->provider = $this->filters[0];
+        if (config('pulse.active_session_threshold') > 0) {
+            $this->activeSessionThreshold['low'] = ['value' => round(config('pulse.active_session_threshold') * 0.25) , 'color' => '#a0d95e'];
+            $this->activeSessionThreshold['medium'] = ['value' => round(config('pulse.active_session_threshold') * 0.50) , 'color' => '#f4a32c'];
+            $this->activeSessionThreshold['high'] = ['value' => round(config('pulse.active_session_threshold') * 0.75) , 'color' => '#f44336'];
+            $this->activeSessionThreshold['critical'] = ['value' => config('pulse.active_session_threshold'), 'color' => '#ff0000'];
+        }
     }
 
     /**
@@ -85,6 +93,18 @@ class PulseActiveSessions extends Card
             true,
             JSON_THROW_ON_ERROR
         );
+        $this->color = '';
+        if (config('pulse.active_session_threshold') > 0) {
+            if ($this->webLoginCount['total'] >= $this->activeSessionThreshold['critical']['value']) {
+                $this->color = $this->activeSessionThreshold['critical']['color'];
+            } elseif ($this->webLoginCount['total'] >= $this->activeSessionThreshold['high']['value']) {
+                $this->color = $this->activeSessionThreshold['high']['color'];
+            } elseif ($this->webLoginCount['total'] >= $this->activeSessionThreshold['medium']['value']) {
+                $this->color = $this->activeSessionThreshold['medium']['color'];
+            } elseif ($this->webLoginCount['total'] >= $this->activeSessionThreshold['low']['value']) {
+                $this->color = $this->activeSessionThreshold['low']['color'];
+            }
+        }
     }
 
     /**

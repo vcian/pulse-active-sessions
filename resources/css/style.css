@@ -9,3 +9,91 @@
 .api-label{
     background-color: #9333ea;
 }
+
+.waves > use {
+    animation: move-forever 3s -2s linear infinite;
+}
+
+.waves > use:nth-child(2) {
+    animation-delay: -3s;
+    animation-duration: 3s;
+}
+.waves > use:nth-child(3) {
+    animation-delay: -4s;
+    animation-duration: 4s;
+}
+
+@keyframes move-forever {
+    0% {
+        transform: translate(-90px, 0%);
+    }
+    100% {
+        transform: translate(85px, 0%);
+    }
+}
+
+.svg-elem {
+    animation-name: splash;
+    animation-duration: 1.8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    opacity: 0;
+    &.svg-elem-1 {
+        animation-delay: 0.0s;
+    }
+    &.svg-elem-2 {
+        animation-delay: 0.10s;
+    }
+    &.svg-elem-3 {
+        animation-delay: 0.20s;
+    }
+    &.svg-elem-4 {
+        animation-delay: 0.30s;
+    }
+    &.svg-elem-5 {
+        animation-delay: 0.40s;
+    }
+    &.svg-elem-6 {
+        animation-delay: 0.50s;
+    }
+    &.svg-elem-7 {
+        animation-delay: 0.60s;
+    }
+    &.svg-elem-8 {
+        animation-delay: 0.70s;
+    }
+    &.svg-elem-9 {
+        animation-delay: 0.80s;
+    }
+    &.svg-elem-10 {
+        animation-delay: 0.90s;
+    }
+    &.svg-elem-11 {
+        animation-delay: 1s;
+    }
+    &.svg-elem-12 {
+        animation-delay: 1.10s;
+    }
+    &.svg-elem-13 {
+        animation-delay: 1.20s;
+    }
+    &.svg-elem-14 {
+        animation-delay: 1.30s;
+    }
+    &.svg-elem-15 {
+        animation-delay: 1.40s;
+    }
+}
+
+@keyframes splash {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
