@@ -70,8 +70,7 @@ Then, you can modify the `dashboard.blade.php` file:
 
 </x-pulse>
 ```
-
-Then, you can add setting in the `pulse.php` config file:
+This feature allows you to dynamically set thresholds and display interactive color-coded indicators based on predefined threshold values. Easily configure these thresholds using the `pulse.php` config file for a visual representation of active sessions.
 
 ```diff
 +    'active_session_threshold' => 100,
