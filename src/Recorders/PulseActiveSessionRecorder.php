@@ -162,7 +162,7 @@ class PulseActiveSessionRecorder
     private function countActiveRedisSession($authProvider): int
     {
         $keys = array_map(fn($key) => str_replace(config('database.redis.options.prefix'), '', $key), Redis::keys('*'));
-        $sessionData = array_map(fn($data) => unserialize(unserialize($data)), Redis::mget($keys));
+        $sessionData = array_map(fn($data) => unserialize(@unserialize($data)), Redis::mget($keys));
         $response = Constant::ZERO;
 
         if ($sessionData) {
