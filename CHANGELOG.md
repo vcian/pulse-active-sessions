@@ -2,6 +2,14 @@
 
 All notable changes to `pulse active sessions` will be documented in this file
 
+## v1.7.1 - 2024-08-13
+
+### What's Changed
+
+* Resolved session count in Redis driver by @vc-vinay in https://github.com/vcian/pulse-active-sessions/pull/40
+
+**Full Changelog**: https://github.com/vcian/pulse-active-sessions/compare/v1.7.0...v1.7.1
+
 ## v1.7.0 - 2024-08-02
 
 ### What's Changed
