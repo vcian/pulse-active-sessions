@@ -186,8 +186,9 @@ class PulseActiveSessionRecorder
      */
     private function countActiveMemcachedSession($authProvider): int
     {
-        $memcachedStore = Cache::store('memcached')->getStore();
-        $memcached = $memcachedStore->getMemcached();
+        $memcached = Cache::store('memcached')
+            ->getStore()
+            ->getMemcached();
         $memcacheData = $memcached->getAllKeys();
         $response = Constant::ZERO;
 
@@ -294,7 +295,7 @@ class PulseActiveSessionRecorder
     private function apiLoginCounts($apiDriver, $authProvider): int
     {
         $key = "active_session_" . $authProvider;
-        
+
         $response = match ($apiDriver) {
             'sanctum' => $this->recordSanctum($authProvider),
             'passport' => $this->recordPassport($authProvider),

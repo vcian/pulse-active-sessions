@@ -1,11 +1,14 @@
 {
     "name": "vcian/pulse-active-sessions",
-    "description": "A Laravel Pulse card to show active user sessions",
+    "description": "A Laravel Pulse card to show active user session.",
     "keywords": [
-        "pulse",
         "laravel",
+        "pulse",
         "laravel-pulse",
-        "pulse-active-sessions"
+        "active-session",
+        "active-user-session",
+        "pulse-active-session",
+        "session"
     ],
     "homepage": "https://github.com/vcian/pulse-active-sessions",
     "license": "MIT",
