@@ -1,4 +1,4 @@
-<x-pulse::card :cols="$cols" :rows="$rows" :class="$class">
+<x-pulse::card :cols="$cols" :rows="$rows" :class="$class . ' relative'">
     <div class="flex flex-col relative z-10">
         <x-pulse::card-header name="Active Sessions" title="Time: {{ number_format($time) }}ms; Run at: {{ $runAt }};">
             <x-slot:icon>
